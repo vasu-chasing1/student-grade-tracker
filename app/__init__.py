@@ -35,15 +35,15 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.register_blueprint(grades_bp)
 
     @app.errorhandler(404)
-    def not_found(_: Exception):
+    def not_found(error: Exception):
         return jsonify({"error": "Resource not found"}), 404
 
     @app.errorhandler(405)
-    def method_not_allowed(_: Exception):
+    def method_not_allowed(error: Exception):
         return jsonify({"error": "Method not allowed"}), 405
 
     @app.errorhandler(500)
-    def internal_error(_: Exception):
+    def internal_error(error: Exception):
         return jsonify({"error": "Internal server error"}), 500
 
     return app
