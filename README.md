@@ -7,6 +7,7 @@ A production-ready Python project for managing students and their academic grade
 - Student management (create, update, delete, list)
 - Grade management (add, list, filter by semester)
 - Average grade calculation
+- Flask web dashboard and REST API
 - Centralized configuration via `config/settings.py`
 - Logging and input validation
 - Unit tests with `pytest`
@@ -27,6 +28,12 @@ Run the demo:
 python run.py
 ```
 
+Run the web app:
+
+```bash
+python app/wsgi.py
+```
+
 Run tests:
 
 ```bash
@@ -44,6 +51,12 @@ student-grade-tracker/
 ├── .gitignore
 ├── config/
 │   └── settings.py
+├── app/
+│   ├── __init__.py
+│   ├── wsgi.py
+│   ├── routes/
+│   ├── templates/
+│   └── static/
 ├── student_grade_pkg/
 │   ├── __init__.py
 │   ├── database.py

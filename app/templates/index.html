@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - Student Grade Tracker{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6>Total Students</h6><h3>{{ stats.total_students }}</h3></div></div></div>
+  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6>Total Grades</h6><h3>{{ stats.total_grades }}</h3></div></div></div>
+  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body"><h6>Class Average</h6><h3>{{ stats.class_average }}</h3></div></div></div>
+</div>
+<div class="card shadow-sm">
+  <div class="card-header">Recent Grades</div>
+  <div class="card-body table-responsive">
+    <table class="table table-striped mb-0">
+      <thead><tr><th>Student</th><th>Subject</th><th>Grade</th><th>Semester</th></tr></thead>
+      <tbody>
+        {% for grade in stats.recent_grades %}
+        <tr><td>{{ grade.student_id }}</td><td>{{ grade.subject }}</td><td>{{ grade.grade_value }}</td><td>{{ grade.semester }}</td></tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted">No grades found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

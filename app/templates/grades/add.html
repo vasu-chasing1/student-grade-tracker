@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Add Grade - Student Grade Tracker{% endblock %}
+{% block content %}
+<h2 class="mb-3">Add Grade</h2>
+<form method="post" class="card card-body shadow-sm" novalidate>
+  <div class="mb-3">
+    <label class="form-label">Student</label>
+    <select class="form-select" name="student_id" required>
+      <option value="">Select student</option>
+      {% for student in students %}
+      <option value="{{ student[0] }}">{{ student[0] }} - {{ student[1] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Subject</label>
+    <input class="form-control" name="subject" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Grade Type</label>
+    <input class="form-control" name="grade_type" required placeholder="Test / Assignment">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Grade Value (0-100)</label>
+    <input class="form-control" name="grade_value" type="number" min="0" max="100" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Semester</label>
+    <input class="form-control" name="semester" type="number" min="1" required>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('grades.list_grades_page') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
