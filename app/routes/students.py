@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask.typing import ResponseReturnValue
 
 from student_grade_pkg.student_manager import StudentManager
 
@@ -10,11 +11,12 @@ students_bp = Blueprint("students", __name__)
 
 
 def _get_student_manager() -> StudentManager:
+    """Return student manager configured for current app DB."""
     return StudentManager(current_app.config["DB_PATH"])
 
 
 @students_bp.route("/students")
-def list_students_page():
+def list_students_page() -> ResponseReturnValue:
     query = request.args.get("q", "").strip().lower()
     students = _get_student_manager().get_all_students()
     if query:
@@ -23,7 +25,7 @@ def list_students_page():
 
 
 @students_bp.route("/students/add", methods=["GET", "POST"])
-def add_student_page():
+def add_student_page() -> ResponseReturnValue:
     if request.method == "POST":
         student_id = request.form.get("student_id", "").strip()
         name = request.form.get("name", "").strip()
@@ -39,7 +41,7 @@ def add_student_page():
 
 
 @students_bp.route("/students/<student_id>/delete", methods=["POST"])
-def delete_student_page(student_id: str):
+def delete_student_page(student_id: str) -> ResponseReturnValue:
     if _get_student_manager().delete_student(student_id):
         flash("Student deleted successfully.", "success")
     else:
@@ -48,7 +50,7 @@ def delete_student_page(student_id: str):
 
 
 @students_bp.route("/api/students", methods=["GET", "POST"])
-def students_collection():
+def students_collection() -> ResponseReturnValue:
     manager = _get_student_manager()
     if request.method == "GET":
         query = request.args.get("q", "").strip().lower()
@@ -73,7 +75,7 @@ def students_collection():
 
 
 @students_bp.route("/api/students/<student_id>", methods=["GET", "PUT", "DELETE"])
-def student_item(student_id: str):
+def student_item(student_id: str) -> ResponseReturnValue:
     manager = _get_student_manager()
     student = manager.get_student(student_id)
 

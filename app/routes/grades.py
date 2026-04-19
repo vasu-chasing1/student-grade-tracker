@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, url_for
+from flask.typing import ResponseReturnValue
 
 from student_grade_pkg.grade_manager import GradeManager
 from student_grade_pkg.student_manager import StudentManager
@@ -13,10 +14,12 @@ grades_bp = Blueprint("grades", __name__)
 
 
 def _get_student_manager() -> StudentManager:
+    """Return student manager configured for current app DB."""
     return StudentManager(current_app.config["DB_PATH"])
 
 
 def _get_grade_manager() -> GradeManager:
+    """Return grade manager configured for current app DB."""
     return GradeManager(current_app.config["DB_PATH"])
 
 
@@ -53,7 +56,7 @@ def _get_filtered_grades(student_id_filter: str = "", subject_filter: str = "") 
 
 
 @grades_bp.route("/grades")
-def list_grades_page():
+def list_grades_page() -> ResponseReturnValue:
     student_id = request.args.get("student_id", "").strip()
     subject = request.args.get("subject", "").strip()
     grades = _get_filtered_grades(student_id, subject)
@@ -68,7 +71,7 @@ def list_grades_page():
 
 
 @grades_bp.route("/grades/add", methods=["GET", "POST"])
-def add_grade_page():
+def add_grade_page() -> ResponseReturnValue:
     student_mgr = _get_student_manager()
     students = student_mgr.get_all_students()
 
@@ -101,7 +104,7 @@ def add_grade_page():
 
 
 @grades_bp.route("/api/grades", methods=["GET", "POST"])
-def grades_collection():
+def grades_collection() -> ResponseReturnValue:
     if request.method == "GET":
         student_id = request.args.get("student_id", "").strip()
         subject = request.args.get("subject", "").strip()
@@ -140,7 +143,7 @@ def grades_collection():
 
 
 @grades_bp.route("/api/grades/<student_id>", methods=["GET"])
-def student_grades(student_id: str):
+def student_grades(student_id: str) -> ResponseReturnValue:
     if not _get_student_manager().get_student(student_id):
         return jsonify({"error": "student not found"}), 404
 

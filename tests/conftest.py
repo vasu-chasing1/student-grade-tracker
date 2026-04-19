@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Generator
 
 import pytest
+from flask.testing import FlaskClient
 
 from app import create_app
 from student_grade_pkg.database import create_database
@@ -33,7 +35,7 @@ def grade_manager(db_path: str) -> GradeManager:
 
 
 @pytest.fixture()
-def app_client(db_path: str):
+def app_client(db_path: str) -> Generator[FlaskClient, None, None]:
     """Provide Flask test client for isolated db."""
     app = create_app({"TESTING": True, "DB_PATH": db_path})
     with app.test_client() as client:

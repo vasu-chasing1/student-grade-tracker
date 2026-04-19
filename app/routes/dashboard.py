@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 
 from flask import Blueprint, current_app, jsonify, render_template
+from flask.typing import ResponseReturnValue
 
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -43,10 +44,10 @@ def _get_dashboard_stats() -> dict:
 
 
 @dashboard_bp.route("/")
-def dashboard_page():
+def dashboard_page() -> ResponseReturnValue:
     return render_template("index.html", stats=_get_dashboard_stats())
 
 
 @dashboard_bp.route("/api/dashboard/stats", methods=["GET"])
-def dashboard_stats():
+def dashboard_stats() -> ResponseReturnValue:
     return jsonify(_get_dashboard_stats()), 200
