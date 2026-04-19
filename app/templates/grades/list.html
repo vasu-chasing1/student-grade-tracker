@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Grades - Student Grade Tracker{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Grades</h2>
+  <a class="btn btn-primary" href="{{ url_for('grades.add_grade_page') }}">Add Grade</a>
+</div>
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-4">
+    <select class="form-select" name="student_id">
+      <option value="">All Students</option>
+      {% for student in students %}
+      <option value="{{ student[0] }}" {% if student_id == student[0] %}selected{% endif %}>{{ student[0] }} - {{ student[1] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4"><input class="form-control" name="subject" value="{{ subject }}" placeholder="Filter by subject"></div>
+  <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Filter</button></div>
+</form>
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead><tr><th>ID</th><th>Student</th><th>Subject</th><th>Type</th><th>Grade</th><th>Semester</th></tr></thead>
+    <tbody>
+      {% for grade in grades %}
+      <tr>
+        <td>{{ grade.id }}</td>
+        <td>{{ grade.student_id }}</td>
+        <td>{{ grade.subject }}</td>
+        <td>{{ grade.grade_type }}</td>
+        <td>{{ grade.grade_value }}</td>
+        <td>{{ grade.semester }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center text-muted">No grades found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
