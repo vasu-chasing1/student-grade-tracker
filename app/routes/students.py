@@ -9,14 +9,14 @@ from student_grade_pkg.student_manager import StudentManager
 students_bp = Blueprint("students", __name__)
 
 
-def _student_manager() -> StudentManager:
+def _get_student_manager() -> StudentManager:
     return StudentManager(current_app.config["DB_PATH"])
 
 
 @students_bp.route("/students")
 def list_students_page():
     query = request.args.get("q", "").strip().lower()
-    students = _student_manager().get_all_students()
+    students = _get_student_manager().get_all_students()
     if query:
         students = [row for row in students if query in row[0].lower() or query in row[1].lower()]
     return render_template("students/list.html", students=students, query=query)
@@ -30,7 +30,7 @@ def add_student_page():
         if not student_id or not name:
             flash("Student ID and name are required.", "danger")
             return render_template("students/add.html", student_id=student_id, name=name), 400
-        if _student_manager().add_student(student_id, name):
+        if _get_student_manager().add_student(student_id, name):
             flash("Student added successfully.", "success")
             return redirect(url_for("students.list_students_page"))
         flash("Unable to add student. ID may already exist.", "danger")
@@ -40,7 +40,7 @@ def add_student_page():
 
 @students_bp.route("/students/<student_id>/delete", methods=["POST"])
 def delete_student_page(student_id: str):
-    if _student_manager().delete_student(student_id):
+    if _get_student_manager().delete_student(student_id):
         flash("Student deleted successfully.", "success")
     else:
         flash("Student not found.", "warning")
@@ -49,7 +49,7 @@ def delete_student_page(student_id: str):
 
 @students_bp.route("/api/students", methods=["GET", "POST"])
 def students_collection():
-    manager = _student_manager()
+    manager = _get_student_manager()
     if request.method == "GET":
         query = request.args.get("q", "").strip().lower()
         students = manager.get_all_students()
@@ -74,7 +74,7 @@ def students_collection():
 
 @students_bp.route("/api/students/<student_id>", methods=["GET", "PUT", "DELETE"])
 def student_item(student_id: str):
-    manager = _student_manager()
+    manager = _get_student_manager()
     student = manager.get_student(student_id)
 
     if request.method == "GET":

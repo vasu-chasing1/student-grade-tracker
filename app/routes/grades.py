@@ -12,15 +12,16 @@ from student_grade_pkg.student_manager import StudentManager
 grades_bp = Blueprint("grades", __name__)
 
 
-def _student_manager() -> StudentManager:
+def _get_student_manager() -> StudentManager:
     return StudentManager(current_app.config["DB_PATH"])
 
 
-def _grade_manager() -> GradeManager:
+def _get_grade_manager() -> GradeManager:
     return GradeManager(current_app.config["DB_PATH"])
 
 
-def _query_grades(student_id_filter: str = "", subject_filter: str = "") -> list[dict]:
+def _get_filtered_grades(student_id_filter: str = "", subject_filter: str = "") -> list[dict]:
+    """Return grade rows with optional student and subject filters."""
     with sqlite3.connect(current_app.config["DB_PATH"]) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         cursor = conn.execute(
@@ -55,8 +56,8 @@ def _query_grades(student_id_filter: str = "", subject_filter: str = "") -> list
 def list_grades_page():
     student_id = request.args.get("student_id", "").strip()
     subject = request.args.get("subject", "").strip()
-    grades = _query_grades(student_id, subject)
-    students = _student_manager().get_all_students()
+    grades = _get_filtered_grades(student_id, subject)
+    students = _get_student_manager().get_all_students()
     return render_template(
         "grades/list.html",
         grades=grades,
@@ -68,7 +69,7 @@ def list_grades_page():
 
 @grades_bp.route("/grades/add", methods=["GET", "POST"])
 def add_grade_page():
-    student_mgr = _student_manager()
+    student_mgr = _get_student_manager()
     students = student_mgr.get_all_students()
 
     if request.method == "POST":
@@ -89,7 +90,7 @@ def add_grade_page():
             flash("Grade value and semester must be numbers.", "danger")
             return render_template("grades/add.html", students=students), 400
 
-        if not _grade_manager().add_grade(student_id, subject, grade_type, grade_value, semester):
+        if not _get_grade_manager().add_grade(student_id, subject, grade_type, grade_value, semester):
             flash("Unable to add grade. Check student and values.", "danger")
             return render_template("grades/add.html", students=students), 400
 
@@ -104,7 +105,7 @@ def grades_collection():
     if request.method == "GET":
         student_id = request.args.get("student_id", "").strip()
         subject = request.args.get("subject", "").strip()
-        return jsonify(_query_grades(student_id, subject)), 200
+        return jsonify(_get_filtered_grades(student_id, subject)), 200
 
     data = request.get_json(silent=True) or {}
     student_id = str(data.get("student_id", "")).strip()
@@ -119,9 +120,9 @@ def grades_collection():
 
     if not student_id or not subject or not grade_type:
         return jsonify({"error": "student_id, subject, and grade_type are required"}), 400
-    if not _student_manager().get_student(student_id):
+    if not _get_student_manager().get_student(student_id):
         return jsonify({"error": "student not found"}), 404
-    if not _grade_manager().add_grade(student_id, subject, grade_type, grade_value, semester):
+    if not _get_grade_manager().add_grade(student_id, subject, grade_type, grade_value, semester):
         return jsonify({"error": "unable to create grade"}), 400
 
     return (
@@ -140,10 +141,10 @@ def grades_collection():
 
 @grades_bp.route("/api/grades/<student_id>", methods=["GET"])
 def student_grades(student_id: str):
-    if not _student_manager().get_student(student_id):
+    if not _get_student_manager().get_student(student_id):
         return jsonify({"error": "student not found"}), 404
 
-    grades = _grade_manager().get_student_grades(student_id)
+    grades = _get_grade_manager().get_student_grades(student_id)
     payload = [
         {
             "subject": subject,

@@ -11,6 +11,7 @@ dashboard_bp = Blueprint("dashboard", __name__)
 
 
 def _get_dashboard_stats() -> dict:
+    """Collect aggregate dashboard metrics and recent grade entries."""
     with sqlite3.connect(current_app.config["DB_PATH"]) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
