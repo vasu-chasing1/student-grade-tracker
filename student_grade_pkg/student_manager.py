@@ -126,5 +126,3 @@ class StudentManager:
         except sqlite3.Error:
             logger.exception("Error deleting student")
             return False
-
-        

@@ -157,4 +157,3 @@ class GradeManager:
         except sqlite3.Error:
             logger.exception("Error fetching semester grades")
             return []
-        
