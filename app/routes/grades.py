@@ -20,7 +20,7 @@ def _grade_manager() -> GradeManager:
     return GradeManager(current_app.config["DB_PATH"])
 
 
-def _all_grades(student_id_filter: str = "", subject_filter: str = "") -> list[dict]:
+def _query_grades(student_id_filter: str = "", subject_filter: str = "") -> list[dict]:
     with sqlite3.connect(current_app.config["DB_PATH"]) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         cursor = conn.execute(
@@ -55,7 +55,7 @@ def _all_grades(student_id_filter: str = "", subject_filter: str = "") -> list[d
 def list_grades_page():
     student_id = request.args.get("student_id", "").strip()
     subject = request.args.get("subject", "").strip()
-    grades = _all_grades(student_id, subject)
+    grades = _query_grades(student_id, subject)
     students = _student_manager().get_all_students()
     return render_template(
         "grades/list.html",
@@ -104,7 +104,7 @@ def grades_collection():
     if request.method == "GET":
         student_id = request.args.get("student_id", "").strip()
         subject = request.args.get("subject", "").strip()
-        return jsonify(_all_grades(student_id, subject)), 200
+        return jsonify(_query_grades(student_id, subject)), 200
 
     data = request.get_json(silent=True) or {}
     student_id = str(data.get("student_id", "")).strip()

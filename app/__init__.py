@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 
@@ -14,7 +16,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     settings = get_settings()
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config.update(
-        SECRET_KEY="student-grade-tracker-secret",
+        SECRET_KEY=os.getenv("SGT_SECRET_KEY", "dev-secret-key"),
         DB_PATH=settings.DB_PATH,
     )
 

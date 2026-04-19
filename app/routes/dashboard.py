@@ -10,7 +10,7 @@ from flask import Blueprint, current_app, jsonify, render_template
 dashboard_bp = Blueprint("dashboard", __name__)
 
 
-def _stats() -> dict:
+def _get_dashboard_stats() -> dict:
     with sqlite3.connect(current_app.config["DB_PATH"]) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
         total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
@@ -43,9 +43,9 @@ def _stats() -> dict:
 
 @dashboard_bp.route("/")
 def dashboard_page():
-    return render_template("index.html", stats=_stats())
+    return render_template("index.html", stats=_get_dashboard_stats())
 
 
 @dashboard_bp.route("/api/dashboard/stats", methods=["GET"])
 def dashboard_stats():
-    return jsonify(_stats()), 200
+    return jsonify(_get_dashboard_stats()), 200
