@@ -1,84 +1,130 @@
-import sqlite3
-import logging
-import os
+"""Student management operations."""
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+from __future__ import annotations
+
+import sqlite3
+from pathlib import Path
+from typing import List, Optional, Tuple
+
+from config.settings import get_settings
+from .utils import get_logger, validate_non_empty
+
+logger = get_logger(__name__)
+StudentRow = Tuple[str, str]
+
 
 class StudentManager:
-    def __init__(self, db_name='grades.db'):
-        self.db_name = os.path.join(os.path.dirname(__file__), db_name)
+    """Manage student records in the SQLite database."""
 
-    def add_student(self, student_id, name):
+    def __init__(self, db_path: Optional[str] = None) -> None:
+        """Initialize student manager.
+
+        Args:
+            db_path: Optional custom database path.
+        """
+        settings = get_settings()
+        self.db_path = str(Path(db_path) if db_path else Path(settings.DB_PATH))
+
+    def _get_connection(self) -> sqlite3.Connection:
+        """Create a database connection with foreign keys enabled."""
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA foreign_keys = ON")
+        return conn
+
+    def add_student(self, student_id: str, name: str) -> bool:
+        """Add a new student.
+
+        Args:
+            student_id: Unique student identifier.
+            name: Student full name.
+
+        Returns:
+            True when inserted, else False.
+        """
         try:
-            conn = sqlite3.connect(self.db_name)
-            cursor = conn.cursor()
-            cursor.execute('INSERT INTO students (student_id, name) VALUES (?, ?)', (student_id, name))
-            conn.commit()
-            conn.close()
-            logging.info(f"Student {name} added successfully with ID {student_id}")
+            validate_non_empty(student_id, "student_id")
+            validate_non_empty(name, "name")
+            with self._get_connection() as conn:
+                conn.execute(
+                    "INSERT INTO students (student_id, name) VALUES (?, ?)",
+                    (student_id.strip(), name.strip()),
+                )
+                conn.commit()
+            logger.info("Student %s added successfully", student_id)
+            return True
+        except ValueError:
+            logger.exception("Validation error while adding student")
+            return False
         except sqlite3.IntegrityError:
-            logging.error(f"Student with ID {student_id} already exists")
-        except Exception as e:
-            logging.error(f"Error adding student: {e}")
+            logger.error("Student with ID %s already exists", student_id)
+            return False
+        except sqlite3.Error:
+            logger.exception("Error adding student")
+            return False
 
-    def get_student(self, student_id):
+    def get_student(self, student_id: str) -> Optional[StudentRow]:
+        """Fetch a student by ID."""
         try:
-            conn = sqlite3.connect(self.db_name)
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM students WHERE student_id = ?', (student_id,))
-            student = cursor.fetchone()
-            conn.close()
-            return student
-        except Exception as e:
-            logging.error(f"Error fetching student: {e}")
+            validate_non_empty(student_id, "student_id")
+            with self._get_connection() as conn:
+                cursor = conn.execute(
+                    "SELECT student_id, name FROM students WHERE student_id = ?",
+                    (student_id.strip(),),
+                )
+                student = cursor.fetchone()
+            return student if student else None
+        except ValueError:
+            logger.exception("Validation error while fetching student")
+            return None
+        except sqlite3.Error:
+            logger.exception("Error fetching student")
             return None
 
-    def get_all_students(self):
+    def get_all_students(self) -> List[StudentRow]:
+        """Return all students."""
         try:
-            conn = sqlite3.connect(self.db_name)
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM students')
-            students = cursor.fetchall()
-            conn.close()
-            return students
-        except Exception as e:
-            logging.error(f"Error fetching all students: {e}")
+            with self._get_connection() as conn:
+                cursor = conn.execute("SELECT student_id, name FROM students ORDER BY student_id")
+                return cursor.fetchall()
+        except sqlite3.Error:
+            logger.exception("Error fetching all students")
             return []
 
-    def update_student(self, student_id, name):
+    def update_student(self, student_id: str, name: str) -> bool:
+        """Update student name by ID."""
         try:
-            conn = sqlite3.connect(self.db_name)
-            cursor = conn.cursor()
-            cursor.execute('UPDATE students SET name = ? WHERE student_id = ?', (name, student_id))
-            conn.commit()
-            conn.close()
-            logging.info(f"Student {student_id} updated successfully")
-        except Exception as e:
-            logging.error(f"Error updating student: {e}")
+            validate_non_empty(student_id, "student_id")
+            validate_non_empty(name, "name")
+            with self._get_connection() as conn:
+                cursor = conn.execute(
+                    "UPDATE students SET name = ? WHERE student_id = ?",
+                    (name.strip(), student_id.strip()),
+                )
+                conn.commit()
+            return cursor.rowcount > 0
+        except ValueError:
+            logger.exception("Validation error while updating student")
+            return False
+        except sqlite3.Error:
+            logger.exception("Error updating student")
+            return False
 
-    def delete_student(self, student_id):
+    def delete_student(self, student_id: str) -> bool:
+        """Delete a student by ID."""
         try:
-            conn = sqlite3.connect(self.db_name)
-            cursor = conn.cursor()
-            cursor.execute('DELETE FROM students WHERE student_id = ?', (student_id,))
-            conn.commit()
-            conn.close()
-            logging.info(f"Student {student_id} deleted successfully")
-        except Exception as e:
-            logging.error(f"Error deleting student: {e}")
-
-def add_grade(self, student_id, subject, marks):
-    try:
-        conn = sqlite3.connect(self.db_name)
-        cursor = conn.cursor()
-        cursor.execute('''
-                       INSERT INTO grades(student_id, subject, marks))
-                       VALUES (?,?,?)''',(student_id, subject, marks))
-        conn.commit()
-        conn.close()
-        logging.info(f"Grade added for {student_id} in {subject}: {marks}")
-
-    except Exception as e:
-        logging.error(f"Error adding grade: {e}")
+            validate_non_empty(student_id, "student_id")
+            with self._get_connection() as conn:
+                cursor = conn.execute(
+                    "DELETE FROM students WHERE student_id = ?",
+                    (student_id.strip(),),
+                )
+                conn.commit()
+            return cursor.rowcount > 0
+        except ValueError:
+            logger.exception("Validation error while deleting student")
+            return False
+        except sqlite3.Error:
+            logger.exception("Error deleting student")
+            return False
 
         

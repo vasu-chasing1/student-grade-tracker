@@ -1,0 +1,6 @@
+# Built-in modules used by this project:
+# - sqlite3
+# - logging
+# - typing
+
+pytest>=8.0.0
